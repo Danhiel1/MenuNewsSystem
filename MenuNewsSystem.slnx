@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Core.API/Core.API.csproj" Id="fec4dfd5-8a61-4db2-9306-043cb75882c4" />
+  <Project Path="Core.Application/Core.Application.csproj" Id="1570f500-31a1-4d98-9717-7ed47be9e401" />
+  <Project Path="Core.Infrastructure/Core.Infrastructure.csproj" Id="1564d366-afbb-4bc5-a3c8-2a495a7e9798" />
+  <Project Path="D:/webcoreapi/MenuNewsSystem/Core.Domain/Core.Domain.csproj" />
+</Solution>
