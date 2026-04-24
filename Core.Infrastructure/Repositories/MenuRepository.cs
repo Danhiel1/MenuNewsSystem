@@ -35,7 +35,8 @@ namespace Core.Infrastructure.Repositories
 
         public async Task<IEnumerable<Menu>> GetAllMenusAsync()
         {
-            return await _context.Menus.ToListAsync();
+            // Asnotracking để cải thiện hiệu suất chỉ khi không cần theo dõi
+            return await _context.Menus.AsNoTracking().ToListAsync();
         }
 
         public async Task<Menu?> GetByIdAsync(int id)
@@ -48,6 +49,7 @@ namespace Core.Infrastructure.Repositories
            return await _context.Menus
                 .Include(m => m.MenuNews)// Include MenuNews để lấy thông tin liên kết giữa Menu và News
                 .ThenInclude(mn=> mn.News)// Include News để lấy thông tin chi tiết của News
+                .AsSplitQuery() // Chia nhỏ câu lệnh Query
                 .FirstOrDefaultAsync(m => m.Id == menuId);
 
         }
@@ -58,5 +60,9 @@ namespace Core.Infrastructure.Repositories
             var rowsAffected = await _context.SaveChangesAsync();
             return rowsAffected > 0;
         }
-    }
+        public async Task<bool> IsNameUniqueAsync(string name)
+        { 
+            return !await _context.Menus.AnyAsync(m => m.Name == name);
+        }
+        }
 }
