@@ -18,6 +18,7 @@ namespace Core.Application.Interfaces
         Task<bool> UpdateMenuAsync(Menu menu);
         Task<bool> DeleteMenuAsync(int id);
         Task<Menu?> GetMenuWithNewsAsync(int menuId);
+        Task<bool> IsNameUniqueAsync(string name);
     }
 
 }
