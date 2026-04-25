@@ -41,7 +41,7 @@ namespace Core.API.Infrastructure
                 problemDetails.Status = StatusCodes.Status500InternalServerError;
                 problemDetails.Title = "Lỗi máy chủ (Server Error)";
                 problemDetails.Detail = "Đã có lỗi hệ thống xảy ra. Vui lòng thử lại sau.";
-                // Mẹo: Ở môi trường Production, không nên ném exception.Message ra ngoài để bảo mật.
+                
             }
             // Trả về Client 
             httpContext.Response.StatusCode= problemDetails.Status.Value;
