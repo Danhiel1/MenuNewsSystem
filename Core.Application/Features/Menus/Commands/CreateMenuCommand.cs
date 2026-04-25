@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Core.Application.Events;
+using Core.Application.Interfaces;
+using Core.Domain.Entities;
+using MassTransit;
+using MassTransit.Transports;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Core.Application.Interfaces;
-using Core.Domain.Entities;
-using MediatR;
 
 namespace Core.Application.Features.Menus.Commands
 {
@@ -20,10 +23,11 @@ namespace Core.Application.Features.Menus.Commands
     public class CreateMenuCommandHandler : IRequestHandler<CreateMenuCommand, int>
     {
         private readonly IMenuRepository _repository;
-
-        public CreateMenuCommandHandler(IMenuRepository repository)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public CreateMenuCommandHandler(IMenuRepository repository, IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<int> Handle(CreateMenuCommand request, CancellationToken cancellationToken)
@@ -33,8 +37,14 @@ namespace Core.Application.Features.Menus.Commands
                 Name = request.Name,
                 Description = request.Description
             };
-
-            return await _repository.CreateMenuAsync(menu);
+            var message = new MenuCreatedEvent
+            {
+                Id = menu.Id,
+                Name = menu.Name,
+                Description = menu.Description
+            };
+            await _publishEndpoint.Publish(message, cancellationToken);
+            return menu.Id;
         }
     }
 }

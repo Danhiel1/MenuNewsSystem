@@ -1,13 +1,15 @@
-using Core.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Core.Application.Interfaces;
-using Core.Infrastructure.Repositories;
-using Core.Application.Features.Menus.Commands;
-using FluentValidation;
-using MediatR;
 using Core.API.Infrastructure;
-using MongoDB.Driver;
+using Core.Application.Features.Menus.Commands;
+using Core.Application.Interfaces;
 using Core.Infrastructure.Configuration;
+using Core.Infrastructure.Persistence;
+using Core.Infrastructure.Repositories;
+using FluentValidation;
+using MassTransit;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using Core.Application.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,25 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 var mongoSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
 mongoSettings!.ConnectionString = builder.Configuration.GetConnectionString("MongoDbConnection")!;
+// Đọc cấu hình, nếu không tìm thấy thì mặc định dùng "guest"
+var rabbitMqHost = builder.Configuration["RabbitMqSettings:Host"] ?? "localhost";
+var rabbitMqUser = builder.Configuration["RabbitMqSettings:Username"] ?? "guest";
+var rabbitMqPass = builder.Configuration["RabbitMqSettings:Password"] ?? "guest";
 
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<MenuCreatedConsumer>();
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rabbitMqHost, "/", h =>
+        {
+            h.Username(rabbitMqUser);
+            h.Password(rabbitMqPass);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 // Đăng ký IMongoClient và IMongoDatabase
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoSettings.ConnectionString));
 builder.Services.AddScoped<IMongoDatabase>(sp =>
@@ -29,6 +49,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Đăng ký Repository
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IMenuReadRepository, MenuReadRepository>();
 // Đăng ký MediatR (Quét toàn bộ tầng Application để tìm Handler)
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateMenuCommand).Assembly));
 // Đăng ký FluentValidation (Quét toàn bộ tầng Application để tìm Validator)

@@ -16,22 +16,23 @@ namespace Core.Application.Features.Menus.Queries
     {
     }
     // Handler:Xử lý logic lấy dữ liệu và chuyển đổi sang DTO
-    public class GetAllMenusQueryHandler :IRequestHandler<GetAllMenusQuery, IEnumerable<MenuDto>>
+    public class GetAllMenusQueryHandler : IRequestHandler<GetAllMenusQuery, IEnumerable<MenuDto>>
     {
-        private readonly IMenuRepository _repository;
-        public GetAllMenusQueryHandler(IMenuRepository repository)
+        private readonly IMenuReadRepository _readRepository; // Đổi sang Read Repository
+
+        public GetAllMenusQueryHandler(IMenuReadRepository readRepository)
         {
-            _repository = repository;
+            _readRepository = readRepository;
         }
         public async Task<IEnumerable<MenuDto>> Handle(GetAllMenusQuery request, CancellationToken cancellationToken)
         {
-            // Chuyển đổi (Map) từ Entity sang DTO để trả về cho người dùng
-            var menus = await _repository.GetAllMenusAsync();
+            // Đọc từ MongoDB
+            var menus = await _readRepository.GetAllAsync();
+
             return menus.Select(m => new MenuDto
             {
                 Id = m.Id,
-                Name = m.Name,
-              
+                Name = m.Name
             });
         }
     }
