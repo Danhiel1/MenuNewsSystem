@@ -1,13 +1,15 @@
 ﻿using Core.Application.DTOs;
+using Core.Application.DTOs;
+using Core.Application.Interfaces;
+using Core.Application.ReadModels;
 using MediatR;
+using MediatR;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Core.Application.DTOs;
-using Core.Application.Interfaces;
-using MediatR;
 
 namespace Core.Application.Features.Menus.Queries
 {
@@ -18,16 +20,16 @@ namespace Core.Application.Features.Menus.Queries
     // Handler:Xử lý logic lấy dữ liệu và chuyển đổi sang DTO
     public class GetAllMenusQueryHandler : IRequestHandler<GetAllMenusQuery, IEnumerable<MenuDto>>
     {
-        private readonly IMenuReadRepository _readRepository; // Đổi sang Read Repository
+        private readonly IMongoCollection<MenuReadModel> _menuCollection;
 
-        public GetAllMenusQueryHandler(IMenuReadRepository readRepository)
+        public GetAllMenusQueryHandler(IMongoDatabase mongoDatabase)
         {
-            _readRepository = readRepository;
+            _menuCollection = mongoDatabase.GetCollection<MenuReadModel>("Menus");
         }
         public async Task<IEnumerable<MenuDto>> Handle(GetAllMenusQuery request, CancellationToken cancellationToken)
         {
             // Đọc từ MongoDB
-            var menus = await _readRepository.GetAllAsync();
+            var menus = await _menuCollection.Find(_ => true).ToListAsync(cancellationToken);
 
             return menus.Select(m => new MenuDto
             {

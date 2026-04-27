@@ -21,10 +21,10 @@ namespace Core.Application.Consumer
         }
         public async Task Consume(ConsumeContext<MenuCreatedEvent> context)
         {
-            // 1. Mở thư ra đọc thông tin
+           
             var message = context.Message;
 
-            // 2. Chuyển đổi dữ liệu từ Thư sang định dạng ReadModel của MongoDB
+           
             var newMenuReadModel = new MenuReadModel
             {
                 Id = message.Id,
@@ -32,8 +32,7 @@ namespace Core.Application.Consumer
                 Description = message.Description,
                 NewsList = new List<NewsItem>() // Khởi tạo mảng rỗng chờ News sau này
             };
-            // 3. Lưu thẳng vào MongoDB
-            await _menuCollection.InsertOneAsync(newMenuReadModel);
+                     await _menuCollection.InsertOneAsync(newMenuReadModel);
         }
     }
 }

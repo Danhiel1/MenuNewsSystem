@@ -1,4 +1,6 @@
 using Core.API.Infrastructure;
+using Core.Application.Consumer;
+using Core.Application.Consumers;
 using Core.Application.Features.Menus.Commands;
 using Core.Application.Interfaces;
 using Core.Infrastructure.Configuration;
@@ -9,7 +11,6 @@ using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
-using Core.Application.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,8 @@ var rabbitMqPass = builder.Configuration["RabbitMqSettings:Password"] ?? "guest"
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<MenuCreatedConsumer>();
+    x.AddConsumer<MenuUpdatedConsumer>();
+    x.AddConsumer<MenuDeletedConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost, "/", h =>

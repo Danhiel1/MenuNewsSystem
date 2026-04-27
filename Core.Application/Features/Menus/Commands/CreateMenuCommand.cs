@@ -37,6 +37,7 @@ namespace Core.Application.Features.Menus.Commands
                 Name = request.Name,
                 Description = request.Description
             };
+            var menuId = await _repository.CreateMenuAsync(menu);
             var message = new MenuCreatedEvent
             {
                 Id = menu.Id,
@@ -44,7 +45,7 @@ namespace Core.Application.Features.Menus.Commands
                 Description = menu.Description
             };
             await _publishEndpoint.Publish(message, cancellationToken);
-            return menu.Id;
+            return menuId;
         }
     }
 }

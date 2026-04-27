@@ -1,4 +1,6 @@
-﻿using Core.Application.Interfaces;
+﻿using Core.Application.Events;
+using Core.Application.Interfaces;
+using MassTransit;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -17,17 +19,36 @@ namespace Core.Application.Features.Menus.Commands
     public class UpdateMenuCommandHandler : IRequestHandler<UpdateMenuCommand, bool>
     {
         private readonly IMenuRepository _repository;
-        public UpdateMenuCommandHandler(IMenuRepository repository)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public UpdateMenuCommandHandler(IMenuRepository repository,IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
+            _publishEndpoint = publishEndpoint;
+
         }
         public async Task<bool> Handle(UpdateMenuCommand request, CancellationToken cancellationToken)
         {
             var menu = await _repository.GetByIdAsync(request.Id);
             if (menu == null) return false;
+
             menu.Name = request.Name;
             menu.Description = request.Description;
-            return await _repository.UpdateMenuAsync(menu);
+
+            var success = await _repository.UpdateMenuAsync(menu);
+            if (success)
+            {
+               
+                var updateMessage = new MenuUpdatedEvent
+                {
+                    Id = request.Id,
+                    Name = request.Name,
+                    Description = request.Description
+                };
+
+                await _publishEndpoint.Publish(updateMessage, cancellationToken);
+            }
+
+            return success;
         }
     }
 }
