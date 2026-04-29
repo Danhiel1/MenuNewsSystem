@@ -1,12 +1,8 @@
-﻿using Core.Application.Events;
+using Core.Application.Events;
 using Core.Application.Interfaces;
+using Core.Domain.Entities;
 using MassTransit;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Core.Application.Features.Menus.Commands
 {
@@ -16,39 +12,50 @@ namespace Core.Application.Features.Menus.Commands
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
     }
+
     public class UpdateMenuCommandHandler : IRequestHandler<UpdateMenuCommand, bool>
     {
-        private readonly IMenuRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPublishEndpoint _publishEndpoint;
-        public UpdateMenuCommandHandler(IMenuRepository repository,IPublishEndpoint publishEndpoint)
-        {
-            _repository = repository;
-            _publishEndpoint = publishEndpoint;
 
+        public UpdateMenuCommandHandler(IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
+        {
+            _unitOfWork = unitOfWork;
+            _publishEndpoint = publishEndpoint;
         }
+
         public async Task<bool> Handle(UpdateMenuCommand request, CancellationToken cancellationToken)
         {
-            var menu = await _repository.GetByIdAsync(request.Id);
+            var repo = _unitOfWork.Repository<Menu>();
+            var menu = await repo.GetByIdAsync(request.Id);
             if (menu == null) return false;
 
-            menu.Name = request.Name;
-            menu.Description = request.Description;
-
-            var success = await _repository.UpdateMenuAsync(menu);
-            if (success)
+            // Bắt đầu transaction SAU khi đã check entity tồn tại
+            // → không cần transaction cho read-only operations
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            try
             {
-               
-                var updateMessage = new MenuUpdatedEvent
+                menu.Name = request.Name;
+                menu.Description = request.Description;
+
+                repo.Update(menu);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await _publishEndpoint.Publish(new MenuUpdatedEvent
                 {
                     Id = request.Id,
                     Name = request.Name,
                     Description = request.Description
-                };
+                }, cancellationToken);
 
-                await _publishEndpoint.Publish(updateMessage, cancellationToken);
+                await _unitOfWork.CommitAsync(cancellationToken);
+                return true;
             }
-
-            return success;
+            catch
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
         }
     }
 }

@@ -1,12 +1,8 @@
-﻿using Core.Application.Events;
+using Core.Application.Events;
 using Core.Application.Interfaces;
+using Core.Domain.Entities;
 using MassTransit;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Core.Application.Features.Menus.Commands
 {
@@ -14,24 +10,42 @@ namespace Core.Application.Features.Menus.Commands
     {
         public int Id { get; set; }
     }
+
     public class DeleteMenuCommandHandler : IRequestHandler<DeleteMenuCommand, bool>
     {
-        private readonly IMenuRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPublishEndpoint _publishEndpoint;
-        public DeleteMenuCommandHandler(IMenuRepository repository, IPublishEndpoint publishEndpoint)
+
+        public DeleteMenuCommandHandler(IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _publishEndpoint = publishEndpoint;
         }
+
         public async Task<bool> Handle(DeleteMenuCommand request, CancellationToken cancellationToken)
         {
-            var success = await _repository.DeleteMenuAsync(request.Id);
-            if (success)
-            {
-                await _publishEndpoint.Publish(new MenuDeletedEvent { Id = request.Id }, cancellationToken);
-            }
-            return success;
-        }
+            var repo = _unitOfWork.Repository<Menu>();
+            var menu = await repo.GetByIdAsync(request.Id);
+            if (menu == null) return false;
 
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                repo.Delete(menu);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await _publishEndpoint.Publish(
+                    new MenuDeletedEvent { Id = request.Id },
+                    cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+                return true;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
     }
 }
