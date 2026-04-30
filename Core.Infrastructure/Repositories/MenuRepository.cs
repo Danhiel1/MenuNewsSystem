@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,40 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Infrastructure.Repositories
 {
-    public class MenuRepository : IMenuRepository
+    public class MenuRepository : GenericRepository<Menu>, IMenuRepository
     {
-        private readonly ApplicationDbContext _context;
-        public MenuRepository(ApplicationDbContext context)
+        public MenuRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
-        public async Task<int> CreateMenuAsync(Menu menu)
-        {
-            _context.Menus.Add(menu);
-            await _context.SaveChangesAsync();
-            return menu.Id; // Trả về ID của Menu vừa tạo
-        }
-
-        public async Task<bool> DeleteMenuAsync(int id)
-        {
-            var menu = _context.Menus.Find(id);
-            if (menu == null) return false;
-            _context.Menus.Remove(menu);
-            var rowsAffected = await _context.SaveChangesAsync();
-            return rowsAffected > 0;
-        }
-
-        public async Task<IEnumerable<Menu>> GetAllMenusAsync()
-        {
-            // Asnotracking để cải thiện hiệu suất chỉ khi không cần theo dõi
-            return await _context.Menus.AsNoTracking().ToListAsync();
-        }
-
-        public async Task<Menu?> GetByIdAsync(int id)
-        {
-           return await _context.Menus.FindAsync(id);
-        }
-
         public async Task<Menu?> GetMenuWithNewsAsync(int menuId)
         {
            return await _context.Menus
@@ -53,16 +24,9 @@ namespace Core.Infrastructure.Repositories
                 .FirstOrDefaultAsync(m => m.Id == menuId);
 
         }
-
-        public async Task<bool> UpdateMenuAsync(Menu menu)
-        {
-            _context.Menus.Update(menu);
-            var rowsAffected = await _context.SaveChangesAsync();
-            return rowsAffected > 0;
-        }
         public async Task<bool> IsNameUniqueAsync(string name)
         { 
             return !await _context.Menus.AnyAsync(m => m.Name == name);
         }
-        }
+    }
 }

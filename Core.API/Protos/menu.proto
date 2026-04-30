@@ -1,0 +1,93 @@
+// ============================================================
+// gRPC Service Definition cho Menu CRUD
+// ============================================================
+// File này là PLACEHOLDER — chưa implement, chỉ là định nghĩa contract.
+//
+// TẠI SAO cần gRPC?
+// - REST dùng JSON (text) → chậm hơn Protobuf (binary)
+// - gRPC dùng HTTP/2 → multiplexing, server streaming
+// - Thích hợp cho service-to-service communication (microservices)
+//
+// CÁCH IMPLEMENT:
+// 1. Cài package: dotnet add package Grpc.AspNetCore
+// 2. Thêm vào Core.API.csproj:
+//    <ItemGroup>
+//      <Protobuf Include="Protos\menu.proto" GrpcServices="Server" />
+//    </ItemGroup>
+// 3. Build → auto-generate C# classes từ proto
+// 4. Tạo MenuGrpcService : MenuService.MenuServiceBase
+// 5. Trong service method → gọi _mediator.Send() (dùng lại handler logic)
+// 6. Program.cs: app.MapGrpcService<MenuGrpcService>()
+//
+// ĐIỂM QUAN TRỌNG:
+// Nhờ dùng MediatR, business logic nằm trong Handlers
+// → cả REST Controller lẫn gRPC Service đều gọi _mediator.Send()
+// → KHÔNG CẦN viết lại logic!
+// ============================================================
+
+syntax = "proto3";
+
+option csharp_namespace = "Core.API.Protos";
+
+package menu;
+
+service MenuService {
+  rpc CreateMenu (CreateMenuRequest) returns (CreateMenuResponse);
+  rpc GetMenu (GetMenuRequest) returns (MenuResponse);
+  rpc GetAllMenus (Empty) returns (MenuListResponse);
+  rpc UpdateMenu (UpdateMenuRequest) returns (UpdateMenuResponse);
+  rpc DeleteMenu (DeleteMenuRequest) returns (DeleteMenuResponse);
+}
+
+message Empty {}
+
+message CreateMenuRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message CreateMenuResponse {
+  bool status = 1;
+  string message = 2;
+  int32 id = 3;
+}
+
+message GetMenuRequest {
+  int32 id = 1;
+}
+
+message MenuResponse {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated NewsItem news_list = 4;
+}
+
+message NewsItem {
+  int32 id = 1;
+  string title = 2;
+}
+
+message MenuListResponse {
+  repeated MenuResponse menus = 1;
+}
+
+message UpdateMenuRequest {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateMenuResponse {
+  bool status = 1;
+  string message = 2;
+}
+
+message DeleteMenuRequest {
+  int32 id = 1;
+}
+
+message DeleteMenuResponse {
+  bool status = 1;
+  string message = 2;
+}

@@ -51,8 +51,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Đăng ký Repository
+builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(MongoGenericRepository<>));
+
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IMenuReadRepository, MenuReadRepository>();
+// TẠI SAO AddScoped cho UnitOfWork?
+// - Scoped = 1 instance PER HTTP request
+// - Mỗi request có 1 UoW riêng → không share transaction giữa các requests
+// - Cùng lifetime với DbContext (cũng Scoped) → đảm bảo cùng DbContext
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Đăng ký MediatR (Quét toàn bộ tầng Application để tìm Handler)
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateMenuCommand).Assembly));
 // Đăng ký FluentValidation (Quét toàn bộ tầng Application để tìm Validator)

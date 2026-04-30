@@ -1,8 +1,6 @@
-﻿using Core.Application.DTOs;
 using Core.Application.DTOs;
 using Core.Application.Interfaces;
 using Core.Application.ReadModels;
-using MediatR;
 using MediatR;
 using MongoDB.Driver;
 using System;
@@ -13,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Core.Application.Features.Menus.Queries
 {
-    // Query: Chứa dữ liệu đầu vào (nếu có
+    // Query: Chứa dữ liệu đầu vào (nếu có)
     public class GetAllMenusQuery : IRequest<IEnumerable<MenuDto>>
     {
     }
@@ -39,4 +37,3 @@ namespace Core.Application.Features.Menus.Queries
         }
     }
 }
-
