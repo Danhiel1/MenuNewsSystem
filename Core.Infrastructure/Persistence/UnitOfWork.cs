@@ -5,23 +5,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Core.Infrastructure.Persistence
 {
-    /// <summary>
-    /// TẠI SAO implement UnitOfWork tại Infrastructure layer?
-    /// - IUnitOfWork (interface) ở Application layer → Handler chỉ biết interface
-    /// - UnitOfWork (class) ở Infrastructure → phụ thuộc EF Core, DbContext
-    /// - Đúng Clean Architecture: Application không biết EF Core tồn tại
-    /// 
-    /// TẠI SAO dùng ConcurrentDictionary cache repositories?
-    /// - Mỗi lần gọi Repository&lt;Menu&gt;() → không tạo mới, lấy từ cache
-    /// - Tiết kiệm memory, đảm bảo cùng 1 DbContext cho tất cả repos
-    /// - ConcurrentDictionary → thread-safe (nhiều request đồng thời)
-    /// 
-    /// TẠI SAO dùng IDbContextTransaction?
-    /// - EF Core wrap database transaction (SQL: BEGIN TRAN / COMMIT / ROLLBACK)
-    /// - BeginTransaction → tất cả SaveChanges chỉ pending
-    /// - Commit → ghi thật vào DB
-    /// - Rollback → hủy tất cả → DB y nguyên như chưa có gì xảy ra
-    /// </summary>
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
@@ -74,7 +57,6 @@ namespace Core.Infrastructure.Persistence
                 _transaction = null;
             }
         }
-
         public void Dispose()
         {
             if (!_disposed)

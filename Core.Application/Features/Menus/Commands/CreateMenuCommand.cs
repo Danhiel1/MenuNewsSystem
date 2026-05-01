@@ -67,9 +67,8 @@ namespace Core.Application.Features.Menus.Commands
             }
             catch
             {
-                // BẤT KỲ lỗi nào → rollback → DB y nguyên
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                throw; // Re-throw để GlobalExceptionHandler xử lý
+                throw; //Global Exception Handler
             }
         }
     }

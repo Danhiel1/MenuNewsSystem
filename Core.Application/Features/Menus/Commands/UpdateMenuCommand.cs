@@ -30,8 +30,7 @@ namespace Core.Application.Features.Menus.Commands
             var menu = await repo.GetByIdAsync(request.Id);
             if (menu == null) return false;
 
-            // Bắt đầu transaction SAU khi đã check entity tồn tại
-            // → không cần transaction cho read-only operations
+           //Check table is exist or not 
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
