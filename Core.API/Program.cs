@@ -47,6 +47,8 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     return client.GetDatabase(mongoSettings.DatabaseName);
 });
 builder.Services.AddControllers();
+// Đăng ký gRPC
+builder.Services.AddGrpc();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -56,10 +58,6 @@ builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(MongoGeneric
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IMenuReadRepository, MenuReadRepository>();
-// TẠI SAO AddScoped cho UnitOfWork?
-// - Scoped = 1 instance PER HTTP request
-// - Mỗi request có 1 UoW riêng → không share transaction giữa các requests
-// - Cùng lifetime với DbContext (cũng Scoped) → đảm bảo cùng DbContext
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Đăng ký MediatR (Quét toàn bộ tầng Application để tìm Handler)
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateMenuCommand).Assembly));
@@ -84,5 +82,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
+// Map gRPC service
+app.MapGrpcService<Core.API.GrpcServices.MenuGrpcService>();
 app.Run();

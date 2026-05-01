@@ -29,22 +29,19 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
     {
         // Map đến tên bảng trong DB — rõ ràng hơn convention
         builder.ToTable("Menus");
-
         builder.HasKey(m => m.Id);
-
-        // ValueGeneratedOnAdd = DB tự tạo Id (IDENTITY)
         builder.Property(m => m.Id)
             .ValueGeneratedOnAdd();
-        // Nếu DB dùng snake_case: .HasColumnName("menu_id");
+        //snake_case:.HasColumnName("menu_id"); 
 
         builder.Property(m => m.Name)
             .IsRequired()
             .HasMaxLength(int.MaxValue);
-        // Nếu DB dùng snake_case: .HasColumnName("menu_name");
+        //snake_case: .HasColumnName("menu_name");
 
         builder.Property(m => m.Description)
             .IsRequired()
             .HasMaxLength(int.MaxValue);
-        // Nếu DB dùng snake_case: .HasColumnName("menu_description");
+        //snake_case: .HasColumnName("menu_description");
     }
 }
