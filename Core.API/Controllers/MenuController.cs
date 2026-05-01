@@ -22,6 +22,12 @@ namespace Core.API.Controllers
             var menuId = await _mediator.Send(command);
             return Ok(ApiResponse<int>.Success(menuId, "Tạo Menu thành công!"));
         }
+
+        /// <summary>
+        /// TẠI SAO dùng ApiResponse&lt;object&gt;?
+        /// Vì data là danh sách DTO — dùng object để linh hoạt.
+        /// Frontend nhận: { "status": true, "data": [ {id:1, name:"..."}, ... ] }
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllMenus()
         {
