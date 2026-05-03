@@ -28,5 +28,12 @@ namespace Core.Infrastructure.Repositories
         { 
             return !await _context.Menus.AnyAsync(m => m.Name == name);
         }
+
+        public async Task<bool> IsNameUniqueAsync(string name, int excludeId)
+        {
+
+            return !await _context.Menus.AnyAsync(m => m.Name == name && m.Id != excludeId);
+        }
+
     }
 }

@@ -7,5 +7,7 @@ namespace Core.Application.Interfaces
         // Methods Special 
         Task<Menu?> GetMenuWithNewsAsync(int menuId);
         Task<bool> IsNameUniqueAsync(string name);
+        Task<bool> IsNameUniqueAsync(string name, int excludeId);
+
     }
 }
