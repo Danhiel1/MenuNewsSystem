@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+using Grpc.Core;
 using MediatR;
 using Core.API.Protos; 
 using Core.Application.Features.Menus.Commands;
@@ -52,7 +52,7 @@ namespace Core.API.GrpcServices
             {
                 Id = m.Id,
                 Name = m.Name ?? string.Empty,
-                Description = string.Empty
+                Description = m.Description ?? string.Empty
             }));
             return response;
         }

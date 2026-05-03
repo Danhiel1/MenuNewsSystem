@@ -1,4 +1,5 @@
 using Core.API.Infrastructure;
+using Core.API.Interceptors;
 using Core.Application.Consumer;
 using Core.Application.Consumers;
 using Core.Application.Features.Menus.Commands;
@@ -11,6 +12,7 @@ using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
+using Grpc.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,9 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<MenuCreatedConsumer>();
     x.AddConsumer<MenuUpdatedConsumer>();
     x.AddConsumer<MenuDeletedConsumer>();
+    x.AddConsumer<NewsCreatedConsumer>();
+    x.AddConsumer<NewsUpdatedConsumer>();
+    x.AddConsumer<NewsDeletedConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost, "/", h =>
@@ -39,6 +44,7 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
 });
+
 // Đăng ký IMongoClient và IMongoDatabase
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoSettings.ConnectionString));
 builder.Services.AddScoped<IMongoDatabase>(sp =>
@@ -48,7 +54,13 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 });
 builder.Services.AddControllers();
 // Đăng ký gRPC
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcLoggingInterceptor>();
+});
+builder.Services.AddSingleton<GrpcLoggingInterceptor>();
+//Test gRPC
+builder.Services.   AddGrpcReflection();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -77,11 +89,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Chỉ redirect HTTPS ở Production — Development dùng HTTP/2 plaintext cho gRPC (port 5050)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 
 app.UseAuthorization();
 
 app.MapControllers();
 // Map gRPC service
 app.MapGrpcService<Core.API.GrpcServices.MenuGrpcService>();
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService(); // ← cho phép test bằng grpcurl/Postman
+}
 app.Run();

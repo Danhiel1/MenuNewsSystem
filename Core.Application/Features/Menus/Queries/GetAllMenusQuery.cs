@@ -32,7 +32,8 @@ namespace Core.Application.Features.Menus.Queries
             return menus.Select(m => new MenuDto
             {
                 Id = m.Id,
-                Name = m.Name
+                Name = m.Name,
+                Description = m.Description ?? string.Empty
             });
         }
     }
